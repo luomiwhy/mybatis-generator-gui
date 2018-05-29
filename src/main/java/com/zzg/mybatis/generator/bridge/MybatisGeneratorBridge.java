@@ -183,7 +183,7 @@ public class MybatisGeneratorBridge {
         }
         PluginConfiguration pluginConfiguration3 = new PluginConfiguration();
         pluginConfiguration3.addProperty("type", "com.softwareloop.mybatis.generator.plugins.LombokPlugin");
-        pluginConfiguration3.addProperty("builder", "true");
+        pluginConfiguration3.addProperty("builder", "false");
         pluginConfiguration3.addProperty("allArgsConstructor", "false");
         pluginConfiguration3.setConfigurationType("com.softwareloop.mybatis.generator.plugins.LombokPlugin");
         context.addPluginConfiguration(pluginConfiguration3);
