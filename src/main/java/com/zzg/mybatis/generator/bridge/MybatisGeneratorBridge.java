@@ -1,5 +1,6 @@
 package com.zzg.mybatis.generator.bridge;
 
+import com.softwareloop.mybatis.generator.plugins.LombokPlugin;
 import com.zzg.mybatis.generator.model.DatabaseConfig;
 import com.zzg.mybatis.generator.model.DbType;
 import com.zzg.mybatis.generator.model.GeneratorConfig;
@@ -180,6 +181,12 @@ public class MybatisGeneratorBridge {
             pluginConfiguration2.setConfigurationType("org.mybatis.generator.plugins.ToStringPlugin");
             context.addPluginConfiguration(pluginConfiguration2);
         }
+        PluginConfiguration pluginConfiguration3 = new PluginConfiguration();
+        pluginConfiguration3.addProperty("type", "com.softwareloop.mybatis.generator.plugins.LombokPlugin");
+        pluginConfiguration3.addProperty("builder", "true");
+        pluginConfiguration3.addProperty("allArgsConstructor", "false");
+        pluginConfiguration3.setConfigurationType("com.softwareloop.mybatis.generator.plugins.LombokPlugin");
+        context.addPluginConfiguration(pluginConfiguration3);
         // limit/offset插件
         if (generatorConfig.isOffsetLimit()) {
             if (DbType.MySQL.name().equals(selectedDatabaseConfig.getDbType())
