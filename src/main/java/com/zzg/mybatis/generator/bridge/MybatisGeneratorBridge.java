@@ -57,6 +57,9 @@ public class MybatisGeneratorBridge {
         Context context = new Context(ModelType.CONDITIONAL);
         configuration.addContext(context);
         context.addProperty("javaFileEncoding", "UTF-8");
+        context.addProperty(PropertyRegistry.CONTEXT_BEGINNING_DELIMITER, "`");
+        context.addProperty(PropertyRegistry.CONTEXT_ENDING_DELIMITER, "`");
+        context.addProperty(PropertyRegistry.CONTEXT_AUTO_DELIMIT_KEYWORDS, "true`");
 	    String connectorLibPath = ConfigHelper.findConnectorLibPath(selectedDatabaseConfig.getDbType());
 	    _LOG.info("connectorLibPath: {}", connectorLibPath);
 	    configuration.addClasspathEntry(connectorLibPath);
@@ -64,6 +67,8 @@ public class MybatisGeneratorBridge {
         TableConfiguration tableConfig = new TableConfiguration(context);
         tableConfig.setTableName(generatorConfig.getTableName());
         tableConfig.setDomainObjectName(generatorConfig.getDomainObjectName());
+        tableConfig.setDelimitIdentifiers(true);
+        tableConfig.setAllColumnDelimitingEnabled(true);
         if(!generatorConfig.isUseExampe()) {
             tableConfig.setUpdateByExampleStatementEnabled(false);
             tableConfig.setCountByExampleStatementEnabled(false);
