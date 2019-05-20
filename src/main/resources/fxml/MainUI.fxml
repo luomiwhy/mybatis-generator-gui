@@ -206,7 +206,7 @@
                                     </HBox>
                                     <HBox alignment="CENTER_LEFT" spacing="10.0" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="8">
                                        <children>
-                                           <CheckBox fx:id="useExample" minWidth="100.0" mnemonicParsing="false" text="使用Example" />
+                                           <CheckBox fx:id="useExample" minWidth="100.0" mnemonicParsing="false" selected="true" text="使用Example" />
                                           <CheckBox fx:id="offsetLimitCheckBox" disable="true" minWidth="100.0" mnemonicParsing="false" selected="true" text="分页插件(暂时只支持MySQL和PostgreSQL)" GridPane.columnIndex="1" GridPane.rowIndex="8" />
                                        </children>
                                     </HBox>
@@ -228,12 +228,12 @@
                                      <HBox prefHeight="100.0" prefWidth="200.0" spacing="18.0">
                                          <children>
                                              <CheckBox fx:id="forUpdateCheckBox" mnemonicParsing="false" selected="false" text="select 增加ForUpdate" />
-                                             <CheckBox fx:id="annotationDAOCheckBox" mnemonicParsing="false" selected="true" text="DAO使用 @Repository 注解" />
+                                             <CheckBox fx:id="annotationDAOCheckBox" mnemonicParsing="false" selected="false" text="DAO使用 @Repository 注解" />
                                          </children>
                                      </HBox>
                                      <HBox prefHeight="100.0" prefWidth="200.0">
                                          <children>
-                                             <CheckBox fx:id="useDAOExtendStyle" mnemonicParsing="false" selected="true" text="DAO方法抽出到公共父接口">
+                                             <CheckBox fx:id="useDAOExtendStyle" mnemonicParsing="false" selected="false" text="DAO方法抽出到公共父接口">
                                              <HBox.margin>
                                                 <Insets right="10.0" />
                                              </HBox.margin></CheckBox>
