@@ -64,7 +64,6 @@ public class MybatisGeneratorBridge {
         context.addProperty(PropertyRegistry.CONTEXT_BEGINNING_DELIMITER, "`");
         context.addProperty(PropertyRegistry.CONTEXT_ENDING_DELIMITER, "`");
         context.addProperty(PropertyRegistry.CONTEXT_AUTO_DELIMIT_KEYWORDS, "true`");
-	    String connectorLibPath = ConfigHelper.findConnectorLibPath(selectedDatabaseConfig.getDbType());
         
 		String dbType = selectedDatabaseConfig.getDbType();
 		String connectorLibPath = ConfigHelper.findConnectorLibPath(dbType);
