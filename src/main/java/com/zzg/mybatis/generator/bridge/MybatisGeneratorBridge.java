@@ -196,6 +196,7 @@ public class MybatisGeneratorBridge {
         serializablePluginConfiguration.addProperty("type", "org.mybatis.generator.plugins.SerializablePlugin");
         serializablePluginConfiguration.setConfigurationType("org.mybatis.generator.plugins.SerializablePlugin");
         context.addPluginConfiguration(serializablePluginConfiguration);
+
         // toString, hashCode, equals插件
         if (generatorConfig.isNeedToStringHashcodeEquals()) {
             PluginConfiguration pluginConfiguration1 = new PluginConfiguration();
@@ -207,6 +208,19 @@ public class MybatisGeneratorBridge {
             pluginConfiguration2.setConfigurationType("org.mybatis.generator.plugins.ToStringPlugin");
             context.addPluginConfiguration(pluginConfiguration2);
         }
+
+        //            <!-- 流式构建法 -->
+        PluginConfiguration fluentPluginConfiguration = new PluginConfiguration();
+        fluentPluginConfiguration.addProperty("type", "org.mybatis.generator.plugins.FluentBuilderMethodsPlugin");
+        fluentPluginConfiguration.setConfigurationType("org.mybatis.generator.plugins.FluentBuilderMethodsPlugin");
+        context.addPluginConfiguration(fluentPluginConfiguration);
+
+        //            <!-- @Mapper注解 -->
+        PluginConfiguration mapperPluginConfiguration = new PluginConfiguration();
+        mapperPluginConfiguration.addProperty("type", "org.mybatis.generator.plugins.MapperAnnotationPlugin");
+        mapperPluginConfiguration.setConfigurationType("org.mybatis.generator.plugins.MapperAnnotationPlugin");
+        context.addPluginConfiguration(mapperPluginConfiguration);
+
         PluginConfiguration pluginConfiguration3 = new PluginConfiguration();
         pluginConfiguration3.addProperty("type", "com.softwareloop.mybatis.generator.plugins.LombokPlugin");
         pluginConfiguration3.addProperty("builder", "false");
@@ -264,27 +278,22 @@ public class MybatisGeneratorBridge {
         //以下是单独添加配置
         if (DbType.MySQL.name().equals(dbType) || DbType.MySQL_8.name().equals(dbType)
                 || DbType.PostgreSQL.name().equals(dbType)) {
-//            <!-- 数据Model链式构建插件 -->
-            PluginConfiguration pluginConfiguration = new PluginConfiguration();
-            pluginConfiguration.addProperty("type", "com.itfsw.mybatis.generator.plugins.ModelBuilderPlugin");
-            pluginConfiguration.setConfigurationType("com.itfsw.mybatis.generator.plugins.ModelBuilderPlugin");
-            context.addPluginConfiguration(pluginConfiguration);
 
 //            <!-- 批量插入插件 -->
-            PluginConfiguration pluginConfiguration1 = new PluginConfiguration();
-            pluginConfiguration1.addProperty("type", "com.itfsw.mybatis.generator.plugins.BatchInsertPlugin");
-            pluginConfiguration1.setConfigurationType("com.itfsw.mybatis.generator.plugins.BatchInsertPlugin");
-            pluginConfiguration1.addProperty("allowMultiQueries", "false"); // 不建议开启
-            context.addPluginConfiguration(pluginConfiguration1);
+//            PluginConfiguration pluginConfiguration1 = new PluginConfiguration();
+//            pluginConfiguration1.addProperty("type", "com.itfsw.mybatis.generator.plugins.BatchInsertPlugin");
+//            pluginConfiguration1.setConfigurationType("com.itfsw.mybatis.generator.plugins.BatchInsertPlugin");
+//            pluginConfiguration1.addProperty("allowMultiQueries", "false"); // 不建议开启
+//            context.addPluginConfiguration(pluginConfiguration1);
 
 //            <!-- 逻辑删除插件 -->
-            PluginConfiguration pluginConfiguration2 = new PluginConfiguration();
-            pluginConfiguration2.addProperty("type", "com.itfsw.mybatis.generator.plugins.LogicalDeletePlugin");
-            pluginConfiguration2.setConfigurationType("com.itfsw.mybatis.generator.plugins.LogicalDeletePlugin");
-            pluginConfiguration2.addProperty("logicalDeleteColumn", "yn");
-            pluginConfiguration2.addProperty("logicalDeleteValue", "-1");
-            pluginConfiguration2.addProperty("logicalUnDeleteValue", "1");
-            context.addPluginConfiguration(pluginConfiguration2);
+            PluginConfiguration logicalDeletePluginConfiguration = new PluginConfiguration();
+            logicalDeletePluginConfiguration.addProperty("type", "com.itfsw.mybatis.generator.plugins.LogicalDeletePlugin");
+            logicalDeletePluginConfiguration.setConfigurationType("com.itfsw.mybatis.generator.plugins.LogicalDeletePlugin");
+            logicalDeletePluginConfiguration.addProperty("logicalDeleteColumn", "yn");
+            logicalDeletePluginConfiguration.addProperty("logicalDeleteValue", "-1");
+            logicalDeletePluginConfiguration.addProperty("logicalUnDeleteValue", "1");
+            context.addPluginConfiguration(logicalDeletePluginConfiguration);
         }
 
         context.setTargetRuntime("MyBatis3");
