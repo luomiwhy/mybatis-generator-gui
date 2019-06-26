@@ -218,8 +218,9 @@ public class MybatisGeneratorBridge {
             if (DbType.MySQL.name().equals(dbType) || DbType.MySQL_8.name().equals(dbType)
 		            || DbType.PostgreSQL.name().equals(dbType)) {
                 PluginConfiguration pluginConfiguration = new PluginConfiguration();
-                pluginConfiguration.addProperty("type", "com.zzg.mybatis.generator.plugins.MySQLLimitPlugin");
-                pluginConfiguration.setConfigurationType("com.zzg.mybatis.generator.plugins.MySQLLimitPlugin");
+                pluginConfiguration.addProperty("type", "com.itfsw.mybatis.generator.plugins.LimitPlugin");
+                pluginConfiguration.setConfigurationType("com.itfsw.mybatis.generator.plugins.LimitPlugin");
+                pluginConfiguration.addProperty("startPage", "0");
                 context.addPluginConfiguration(pluginConfiguration);
             }
         }
@@ -258,6 +259,32 @@ public class MybatisGeneratorBridge {
                 pluginConfiguration.setConfigurationType("com.zzg.mybatis.generator.plugins.CommonDAOInterfacePlugin");
                 context.addPluginConfiguration(pluginConfiguration);
             }
+        }
+
+        //以下是单独添加配置
+        if (DbType.MySQL.name().equals(dbType) || DbType.MySQL_8.name().equals(dbType)
+                || DbType.PostgreSQL.name().equals(dbType)) {
+//            <!-- 数据Model链式构建插件 -->
+            PluginConfiguration pluginConfiguration = new PluginConfiguration();
+            pluginConfiguration.addProperty("type", "com.itfsw.mybatis.generator.plugins.ModelBuilderPlugin");
+            pluginConfiguration.setConfigurationType("com.itfsw.mybatis.generator.plugins.ModelBuilderPlugin");
+            context.addPluginConfiguration(pluginConfiguration);
+
+//            <!-- 批量插入插件 -->
+            PluginConfiguration pluginConfiguration1 = new PluginConfiguration();
+            pluginConfiguration1.addProperty("type", "com.itfsw.mybatis.generator.plugins.BatchInsertPlugin");
+            pluginConfiguration1.setConfigurationType("com.itfsw.mybatis.generator.plugins.BatchInsertPlugin");
+            pluginConfiguration1.addProperty("allowMultiQueries", "false"); // 不建议开启
+            context.addPluginConfiguration(pluginConfiguration1);
+
+//            <!-- 逻辑删除插件 -->
+            PluginConfiguration pluginConfiguration2 = new PluginConfiguration();
+            pluginConfiguration2.addProperty("type", "com.itfsw.mybatis.generator.plugins.LogicalDeletePlugin");
+            pluginConfiguration2.setConfigurationType("com.itfsw.mybatis.generator.plugins.LogicalDeletePlugin");
+            pluginConfiguration2.addProperty("logicalDeleteColumn", "yn");
+            pluginConfiguration2.addProperty("logicalDeleteValue", "-1");
+            pluginConfiguration2.addProperty("logicalUnDeleteValue", "1");
+            context.addPluginConfiguration(pluginConfiguration2);
         }
 
         context.setTargetRuntime("MyBatis3");
