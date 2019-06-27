@@ -1,0 +1,202 @@
+package com.zzg.mybatis.generator.plugins;
+
+import org.mybatis.generator.api.IntrospectedColumn;
+import org.mybatis.generator.api.IntrospectedTable;
+import org.mybatis.generator.api.PluginAdapter;
+import org.mybatis.generator.api.dom.java.*;
+import org.mybatis.generator.api.dom.xml.Attribute;
+import org.mybatis.generator.api.dom.xml.Document;
+import org.mybatis.generator.api.dom.xml.TextElement;
+import org.mybatis.generator.api.dom.xml.XmlElement;
+import org.mybatis.generator.codegen.mybatis3.MyBatis3FormattingUtilities;
+import org.mybatis.generator.internal.util.JavaBeansUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Properties;
+
+import static org.mybatis.generator.internal.util.StringUtility.stringHasValue;
+
+
+public class LogicalDeletePlugin extends PluginAdapter {
+    protected static final Logger logger = LoggerFactory.getLogger(LogicalDeletePlugin.class);
+
+    public static final String PRO_LOGICAL_DELETE_COLUMN = "logicalDeleteColumn";
+    public static final String PRO_LOGICAL_DELETE_VALUE = "logicalDeleteValue";
+    public static final String PRO_LOGICAL_NOT_DELETE_VALUE = "logicalNotDeleteValue";
+    /**
+     * 逻辑删除列
+     */
+    private IntrospectedColumn logicalDeleteColumn;
+    /**
+     * 逻辑删除值
+     */
+    private String logicalDeleteValue;
+    /**
+     * 逻辑删除值（未删除）
+     */
+    private String logicalNotDeleteValue;
+
+    public static final String PRO_LOGICAL_DELETE_ENUM_CLASS_NAME="logicalDeleteEnumClassName";
+    public String logicalDeleteEnumClassName;
+
+    /**
+     * 逻辑删除查询方法
+     */
+    public static final String METHOD_LOGICAL_DELETED = "andSetLogicalDeleted";
+    /**
+     * 增强selectByPrimaryKey是参数名称
+     */
+    public static final String PARAMETER_LOGICAL_DELETED = METHOD_LOGICAL_DELETED;
+
+    public static final String METHOD_LOGICAL_DELETE_BY_EXAMPLE = "logicalDeleteByExample";
+    public static final String METHOD_LOGICAL_DELETE_BY_PRIMARY_KEY = "logicalDeleteByPrimaryKey";
+
+
+    @Override
+    public boolean validate(List<String> warnings) {
+        return true;
+    }
+
+    @Override
+    public void initialized(IntrospectedTable introspectedTable) {
+        super.initialized(introspectedTable);
+
+        // 1. 获取配置的逻辑删除列
+        Properties properties = getProperties();
+        String logicalDeleteColumn = properties.getProperty(PRO_LOGICAL_DELETE_COLUMN);
+        this.logicalDeleteColumn = introspectedTable.getColumn(logicalDeleteColumn);
+        // 判断如果表单独配置了逻辑删除列，但是却没有找到对应列进行提示
+        if (introspectedTable.getTableConfigurationProperty(PRO_LOGICAL_DELETE_COLUMN) != null && this.logicalDeleteColumn == null) {
+            logger.error("(逻辑删除插件):" + introspectedTable.getFullyQualifiedTable() + "没有找到您配置的逻辑删除列(" + introspectedTable.getTableConfigurationProperty(PRO_LOGICAL_DELETE_COLUMN) + ")！");
+        }
+
+        // 3.判断逻辑删除值是否配置了
+        this.logicalDeleteValue = properties.getProperty(PRO_LOGICAL_DELETE_VALUE);
+        this.logicalNotDeleteValue = properties.getProperty(PRO_LOGICAL_NOT_DELETE_VALUE);
+        if (this.logicalDeleteValue == null || this.logicalNotDeleteValue == null) {
+            this.logicalDeleteColumn = null;
+            logger.error("(逻辑删除插件):" + introspectedTable.getFullyQualifiedTable() + "没有找到您配置的逻辑删除值，请全局配置logicalDeleteValue和logicalUnDeleteValue值！");
+        }
+
+        //4. 通常情况下，逻辑删除枚举和列定义是固定的，所以删除原有代码。替换为固定枚举类
+        this.logicalDeleteEnumClassName = properties.getProperty(PRO_LOGICAL_DELETE_ENUM_CLASS_NAME);
+        if (this.logicalDeleteEnumClassName == null) {
+            logger.error("(逻辑删除插件):没有找到您配置的逻辑删除值对应的枚举类(0位置放未删除，1位置放已删除)");
+        }
+
+        // 5. 防止增强的selectByPrimaryKey中逻辑删除键冲突
+        if (this.logicalDeleteColumn != null) {
+            Field logicalDeleteField = JavaBeansUtil.getJavaBeansField(this.logicalDeleteColumn, context, introspectedTable);
+            if (logicalDeleteField.getName().equals(PARAMETER_LOGICAL_DELETED)) {
+                this.logicalDeleteColumn = null;
+                logger.error("(逻辑删除插件):" + introspectedTable.getFullyQualifiedTable() + "配置的逻辑删除列和插件保留关键字(" + PARAMETER_LOGICAL_DELETED + ")冲突！");
+            }
+        }
+    }
+
+    @Override
+    public boolean clientDeleteByExampleMethodGenerated(Method method, Interface interfaze, IntrospectedTable introspectedTable) {
+        super.clientDeleteByExampleMethodGenerated(method, interfaze, introspectedTable);
+        // 1. 逻辑删除ByExample
+        Method limitMethod1 = new Method(METHOD_LOGICAL_DELETE_BY_EXAMPLE);
+        limitMethod1.setVisibility(JavaVisibility.DEFAULT);
+        limitMethod1.setReturnType(FullyQualifiedJavaType.getIntInstance());
+        limitMethod1.addParameter(new Parameter(new FullyQualifiedJavaType(introspectedTable.getExampleType()), "example"));
+        interfaze.addMethod(limitMethod1);
+        logger.debug("(逻辑删除插件):" + interfaze.getType().getShortName() + "增加方法logicalDeleteByExample。");
+        return true;
+    }
+
+    @Override
+    public boolean clientDeleteByPrimaryKeyMethodGenerated(Method method, Interface interfaze, IntrospectedTable introspectedTable) {
+        super.clientDeleteByPrimaryKeyMethodGenerated(method, interfaze, introspectedTable);
+        if (introspectedTable.hasPrimaryKeyColumns()) {
+            // 2.1. 逻辑删除ByExample
+            Method mLogicalDeleteByPrimaryKey = new Method(METHOD_LOGICAL_DELETE_BY_PRIMARY_KEY);
+            mLogicalDeleteByPrimaryKey.setVisibility(JavaVisibility.DEFAULT);
+            mLogicalDeleteByPrimaryKey.setReturnType(FullyQualifiedJavaType.getIntInstance());
+
+            if (introspectedTable.getRules().generatePrimaryKeyClass()) {
+                // 暂不处理有key生产类的
+//                FullyQualifiedJavaType type1 = new FullyQualifiedJavaType(introspectedTable.getPrimaryKeyType());
+//                mLogicalDeleteByPrimaryKey.addParameter(new Parameter(type1, "key"));
+            } else {
+                // no primary key class - fields are in the base class
+                // if more than one PK field, then we need to annotate the
+                // parameters
+                // for MyBatis
+                List<IntrospectedColumn> introspectedColumns = introspectedTable.getPrimaryKeyColumns();
+                boolean annotate = introspectedColumns.size() > 1;
+                StringBuilder sb = new StringBuilder();
+                for (IntrospectedColumn introspectedColumn : introspectedColumns) {
+                    FullyQualifiedJavaType type1 = introspectedColumn.getFullyQualifiedJavaType();
+                    Parameter parameter = new Parameter(type1, introspectedColumn.getJavaProperty());
+                    if (annotate) {
+                        sb.setLength(0);
+                        sb.append("@Param(\"");
+                        sb.append(introspectedColumn.getJavaProperty());
+                        sb.append("\")");
+                        parameter.addAnnotation(sb.toString());
+                    }
+                    mLogicalDeleteByPrimaryKey.addParameter(parameter);
+                }
+            }
+            interfaze.addMethod(mLogicalDeleteByPrimaryKey);
+            logger.debug("(逻辑删除插件):" + interfaze.getType().getShortName() + "增加方法logicalDeleteByPrimaryKey。");
+        }
+        return true;
+    }
+
+    @Override
+    public boolean sqlMapDocumentGenerated(Document document, IntrospectedTable introspectedTable) {
+        super.sqlMapDocumentGenerated(document, introspectedTable);
+        // 1. 逻辑删除ByExample
+        XmlElement logicalDeleteByExample = new XmlElement("update");
+        logicalDeleteByExample.addAttribute(new Attribute("id", METHOD_LOGICAL_DELETE_BY_EXAMPLE));
+        logicalDeleteByExample.addAttribute(new Attribute("parameterType", introspectedTable.getExampleType()));
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("update ");
+        sb.append(introspectedTable.getAliasedFullyQualifiedTableNameAtRuntime());
+        sb.append(" set ");
+        // 更新逻辑删除字段
+        sb.append(this.logicalDeleteColumn.getActualColumnName());
+        sb.append(" = ");
+        sb.append(this.logicalDeleteValue);
+        logicalDeleteByExample.addElement(new TextElement(sb.toString()));
+        logicalDeleteByExample.addElement(CommonUtils.getExampleIncludeElement(introspectedTable));
+
+        document.getRootElement().addElement(logicalDeleteByExample);
+        logger.debug("itfsw(逻辑删除插件):" + introspectedTable.getMyBatis3XmlMapperFileName() + "增加方法logicalDeleteByExample的实现。");
+
+
+        // 2. 判断是否有主键，生成主键删除方法
+        if (introspectedTable.hasPrimaryKeyColumns()) {
+            XmlElement logicalDeleteByPrimaryKey = new XmlElement("update");
+            logicalDeleteByPrimaryKey.addAttribute(new Attribute("id", METHOD_LOGICAL_DELETE_BY_PRIMARY_KEY));
+
+            String parameterClass;
+            if (introspectedTable.getRules().generatePrimaryKeyClass()) {
+                // 暂不处理有key生产类的
+                parameterClass = introspectedTable.getPrimaryKeyType();
+            } else {
+                // PK fields are in the base class. If more than on PK
+                // field, then they are coming in a map.
+                if (introspectedTable.getPrimaryKeyColumns().size() > 1) {
+                    parameterClass = "map";
+                } else {
+                    parameterClass = introspectedTable.getPrimaryKeyColumns().get(0).getFullyQualifiedJavaType().toString();
+                }
+            }
+            logicalDeleteByPrimaryKey.addAttribute(new Attribute("parameterType", parameterClass));
+            logicalDeleteByPrimaryKey.addElement(new TextElement(sb.toString()));
+            CommonUtils.generateWhereByPrimaryKeyTo(logicalDeleteByPrimaryKey, introspectedTable.getPrimaryKeyColumns());
+            document.getRootElement().addElement(logicalDeleteByPrimaryKey);
+            logger.debug("(逻辑删除插件):" + introspectedTable.getMyBatis3XmlMapperFileName() + "增加方法logicalDeleteByPrimaryKey的实现。");
+        }
+
+        return true;
+    }
+}
