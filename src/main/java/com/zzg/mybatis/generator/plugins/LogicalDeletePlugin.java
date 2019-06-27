@@ -4,19 +4,13 @@ import org.mybatis.generator.api.IntrospectedColumn;
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.PluginAdapter;
 import org.mybatis.generator.api.dom.java.*;
-import org.mybatis.generator.api.dom.xml.Attribute;
-import org.mybatis.generator.api.dom.xml.Document;
-import org.mybatis.generator.api.dom.xml.TextElement;
-import org.mybatis.generator.api.dom.xml.XmlElement;
-import org.mybatis.generator.codegen.mybatis3.MyBatis3FormattingUtilities;
+import org.mybatis.generator.api.dom.xml.*;
 import org.mybatis.generator.internal.util.JavaBeansUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Properties;
-
-import static org.mybatis.generator.internal.util.StringUtility.stringHasValue;
 
 
 public class LogicalDeletePlugin extends PluginAdapter {
@@ -96,24 +90,34 @@ public class LogicalDeletePlugin extends PluginAdapter {
         }
     }
 
+    /**
+     * 逻辑删除ByExample
+     * @param method
+     * @param interfaze
+     * @param introspectedTable
+     * @return
+     */
     @Override
     public boolean clientDeleteByExampleMethodGenerated(Method method, Interface interfaze, IntrospectedTable introspectedTable) {
-        super.clientDeleteByExampleMethodGenerated(method, interfaze, introspectedTable);
-        // 1. 逻辑删除ByExample
         Method limitMethod1 = new Method(METHOD_LOGICAL_DELETE_BY_EXAMPLE);
         limitMethod1.setVisibility(JavaVisibility.DEFAULT);
         limitMethod1.setReturnType(FullyQualifiedJavaType.getIntInstance());
         limitMethod1.addParameter(new Parameter(new FullyQualifiedJavaType(introspectedTable.getExampleType()), "example"));
         interfaze.addMethod(limitMethod1);
         logger.debug("(逻辑删除插件):" + interfaze.getType().getShortName() + "增加方法logicalDeleteByExample。");
-        return true;
+        return super.clientDeleteByExampleMethodGenerated(method, interfaze, introspectedTable);
     }
 
+    /**
+     * 逻辑删除ByExample
+     * @param method
+     * @param interfaze
+     * @param introspectedTable
+     * @return
+     */
     @Override
     public boolean clientDeleteByPrimaryKeyMethodGenerated(Method method, Interface interfaze, IntrospectedTable introspectedTable) {
-        super.clientDeleteByPrimaryKeyMethodGenerated(method, interfaze, introspectedTable);
         if (introspectedTable.hasPrimaryKeyColumns()) {
-            // 2.1. 逻辑删除ByExample
             Method mLogicalDeleteByPrimaryKey = new Method(METHOD_LOGICAL_DELETE_BY_PRIMARY_KEY);
             mLogicalDeleteByPrimaryKey.setVisibility(JavaVisibility.DEFAULT);
             mLogicalDeleteByPrimaryKey.setReturnType(FullyQualifiedJavaType.getIntInstance());
@@ -146,26 +150,57 @@ public class LogicalDeletePlugin extends PluginAdapter {
             interfaze.addMethod(mLogicalDeleteByPrimaryKey);
             logger.debug("(逻辑删除插件):" + interfaze.getType().getShortName() + "增加方法logicalDeleteByPrimaryKey。");
         }
-        return true;
+        return super.clientDeleteByPrimaryKeyMethodGenerated(method, interfaze, introspectedTable);
+    }
+
+    /**
+     * 修改 selectByExample 只查未逻辑删除的记录
+     */
+    @Override
+    public boolean sqlMapSelectByExampleWithoutBLOBsElementGenerated(XmlElement element, IntrospectedTable introspectedTable) {
+        int insertIndex = 5;
+        for (int i = 0; i < element.getElements().size(); i++) {
+            Element e = element.getElements().get(i);
+            if (e instanceof XmlElement) {
+                XmlElement xmlElement = (XmlElement) e;
+                if (xmlElement.getAttributes().get(0).getValue().startsWith("orderByClause")) {
+                    insertIndex = i;
+                    break;
+                }
+            }
+        }
+        TextElement e = new TextElement(" and "+this.logicalDeleteColumn.getActualColumnName()+"="+this.logicalNotDeleteValue+" ");
+        element.addElement(insertIndex, e);
+        return super.sqlMapSelectByExampleWithoutBLOBsElementGenerated(element, introspectedTable);
+    }
+
+    /**
+     * 修改 selectByPrimaryKey 只查未逻辑删除的记录
+     * @return
+     */
+    @Override
+    public boolean sqlMapSelectByPrimaryKeyElementGenerated(XmlElement element, IntrospectedTable introspectedTable) {
+        TextElement e = new TextElement(" and "+this.logicalDeleteColumn.getActualColumnName()+"="+this.logicalNotDeleteValue+" ");
+        element.addElement(e);
+        return super.sqlMapSelectByPrimaryKeyElementGenerated(element, introspectedTable);
     }
 
     @Override
     public boolean sqlMapDocumentGenerated(Document document, IntrospectedTable introspectedTable) {
-        super.sqlMapDocumentGenerated(document, introspectedTable);
         // 1. 逻辑删除ByExample
         XmlElement logicalDeleteByExample = new XmlElement("update");
         logicalDeleteByExample.addAttribute(new Attribute("id", METHOD_LOGICAL_DELETE_BY_EXAMPLE));
         logicalDeleteByExample.addAttribute(new Attribute("parameterType", introspectedTable.getExampleType()));
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("update ");
-        sb.append(introspectedTable.getAliasedFullyQualifiedTableNameAtRuntime());
-        sb.append(" set ");
+        StringBuilder updatePrefix = new StringBuilder();
+        updatePrefix.append("update ");
+        updatePrefix.append(introspectedTable.getAliasedFullyQualifiedTableNameAtRuntime());
+        updatePrefix.append(" set ");
         // 更新逻辑删除字段
-        sb.append(this.logicalDeleteColumn.getActualColumnName());
-        sb.append(" = ");
-        sb.append(this.logicalDeleteValue);
-        logicalDeleteByExample.addElement(new TextElement(sb.toString()));
+        updatePrefix.append(this.logicalDeleteColumn.getActualColumnName());
+        updatePrefix.append(" = ");
+        updatePrefix.append(this.logicalDeleteValue);
+        logicalDeleteByExample.addElement(new TextElement(updatePrefix.toString()));
         logicalDeleteByExample.addElement(CommonUtils.getExampleIncludeElement(introspectedTable));
 
         document.getRootElement().addElement(logicalDeleteByExample);
@@ -191,12 +226,12 @@ public class LogicalDeletePlugin extends PluginAdapter {
                 }
             }
             logicalDeleteByPrimaryKey.addAttribute(new Attribute("parameterType", parameterClass));
-            logicalDeleteByPrimaryKey.addElement(new TextElement(sb.toString()));
+            logicalDeleteByPrimaryKey.addElement(new TextElement(updatePrefix.toString()));
             CommonUtils.generateWhereByPrimaryKeyTo(logicalDeleteByPrimaryKey, introspectedTable.getPrimaryKeyColumns());
             document.getRootElement().addElement(logicalDeleteByPrimaryKey);
             logger.debug("(逻辑删除插件):" + introspectedTable.getMyBatis3XmlMapperFileName() + "增加方法logicalDeleteByPrimaryKey的实现。");
         }
 
-        return true;
+        return super.sqlMapDocumentGenerated(document, introspectedTable);
     }
 }
