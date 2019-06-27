@@ -19,17 +19,8 @@ public class LogicalDeletePlugin extends PluginAdapter {
     public static final String PRO_LOGICAL_DELETE_COLUMN = "logicalDeleteColumn";
     public static final String PRO_LOGICAL_DELETE_VALUE = "logicalDeleteValue";
     public static final String PRO_LOGICAL_NOT_DELETE_VALUE = "logicalNotDeleteValue";
-    /**
-     * 逻辑删除列
-     */
     private IntrospectedColumn logicalDeleteColumn;
-    /**
-     * 逻辑删除值
-     */
     private String logicalDeleteValue;
-    /**
-     * 逻辑删除值（未删除）
-     */
     private String logicalNotDeleteValue;
 
     public static final String PRO_LOGICAL_DELETE_ENUM_CLASS_NAME="logicalDeleteEnumClassName";
@@ -43,6 +34,10 @@ public class LogicalDeletePlugin extends PluginAdapter {
      * 增强selectByPrimaryKey是参数名称
      */
     public static final String PARAMETER_LOGICAL_DELETED = METHOD_LOGICAL_DELETED;
+    /**
+     * selectByPrimaryKey 的逻辑删除增强
+     */
+    public static final String METHOD_SELECT_BY_PRIMARY_KEY_WITH_LOGICAL_DELETE = "selectByPrimaryKeyWithLogicalDelete";
 
     public static final String METHOD_LOGICAL_DELETE_BY_EXAMPLE = "logicalDeleteByExample";
     public static final String METHOD_LOGICAL_DELETE_BY_PRIMARY_KEY = "logicalDeleteByPrimaryKey";
@@ -92,10 +87,6 @@ public class LogicalDeletePlugin extends PluginAdapter {
 
     /**
      * 逻辑删除ByExample
-     * @param method
-     * @param interfaze
-     * @param introspectedTable
-     * @return
      */
     @Override
     public boolean clientDeleteByExampleMethodGenerated(Method method, Interface interfaze, IntrospectedTable introspectedTable) {
@@ -110,10 +101,6 @@ public class LogicalDeletePlugin extends PluginAdapter {
 
     /**
      * 逻辑删除ByExample
-     * @param method
-     * @param interfaze
-     * @param introspectedTable
-     * @return
      */
     @Override
     public boolean clientDeleteByPrimaryKeyMethodGenerated(Method method, Interface interfaze, IntrospectedTable introspectedTable) {
@@ -154,6 +141,21 @@ public class LogicalDeletePlugin extends PluginAdapter {
     }
 
     /**
+     * 增强为 selectByPrimaryKeyWithLogicalDelete
+     */
+    @Override
+    public boolean clientSelectByExampleWithoutBLOBsMethodGenerated(Method method, Interface interfaze, IntrospectedTable introspectedTable) {
+        Method selectLogicDeleteMethod = new Method(METHOD_SELECT_BY_PRIMARY_KEY_WITH_LOGICAL_DELETE);
+        selectLogicDeleteMethod.setVisibility(JavaVisibility.DEFAULT);
+        selectLogicDeleteMethod.setReturnType(FullyQualifiedJavaType.getIntInstance());
+        selectLogicDeleteMethod.addParameter(new Parameter(new FullyQualifiedJavaType(introspectedTable.getExampleType()), "example", "@Param(\"example\")"));
+        selectLogicDeleteMethod.addParameter(new Parameter(FullyQualifiedJavaType.getBooleanPrimitiveInstance(), PARAMETER_LOGICAL_DELETED, "@Param(\""+PARAMETER_LOGICAL_DELETED+"\")"));
+        interfaze.addMethod(selectLogicDeleteMethod);
+        logger.debug("(逻辑删除插件):" + interfaze.getType().getShortName() + "增加方法logicalDeleteByExample。");
+        return super.clientSelectByExampleWithoutBLOBsMethodGenerated(method, interfaze, introspectedTable);
+    }
+
+    /**
      * 修改 selectByExample 只查未逻辑删除的记录
      */
     @Override
@@ -176,7 +178,6 @@ public class LogicalDeletePlugin extends PluginAdapter {
 
     /**
      * 修改 selectByPrimaryKey 只查未逻辑删除的记录
-     * @return
      */
     @Override
     public boolean sqlMapSelectByPrimaryKeyElementGenerated(XmlElement element, IntrospectedTable introspectedTable) {
