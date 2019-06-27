@@ -10,14 +10,32 @@ import org.mybatis.generator.api.dom.java.*;
 import org.mybatis.generator.api.dom.xml.Attribute;
 import org.mybatis.generator.api.dom.xml.TextElement;
 import org.mybatis.generator.api.dom.xml.XmlElement;
+import org.mybatis.generator.internal.util.StringUtility;
 
 import java.util.List;
 
 public class MySQLLimitPlugin extends PluginAdapter {
+    /**
+     * 分页开始页码
+     */
+    public final static String PRO_START_PAGE = "startPage";
+    private final static int DEFAULT_START_PAGE = 0;
+    private int startPage = DEFAULT_START_PAGE;
 
     @Override
     public boolean validate(List<String> list) {
         return true;
+    }
+
+    @Override
+    public void initialized(IntrospectedTable introspectedTable) {
+        super.initialized(introspectedTable);
+
+        // 获取配置
+        String startPage = this.getProperties().getProperty(PRO_START_PAGE);
+        if (StringUtility.stringHasValue(startPage)) {
+            this.startPage = Integer.valueOf(startPage);
+        }
     }
 
     /**
@@ -68,6 +86,43 @@ public class MySQLLimitPlugin extends PluginAdapter {
         getOffset.setName("getOffset");
         getOffset.addBodyLine("return offset;");
         topLevelClass.addMethod(getOffset);
+
+        Method limitMethod1 = new Method("limit");
+        limitMethod1.setVisibility(JavaVisibility.PUBLIC);
+        limitMethod1.setReturnType(topLevelClass.getType());
+        limitMethod1.addParameter(new Parameter(integerWrapper, "limit"));
+        limitMethod1.addBodyLine("this.limit = limit;");
+        limitMethod1.addBodyLine("return this;");
+        topLevelClass.addMethod(limitMethod1);
+
+        Method limitMethod2 = new Method("limit");
+        limitMethod2.setVisibility(JavaVisibility.PUBLIC);
+        limitMethod2.setReturnType(topLevelClass.getType());
+        limitMethod2.addParameter(new Parameter(longWrapper, "offset"));
+        limitMethod2.addParameter(new Parameter(integerWrapper, "limit"));
+        limitMethod2.addBodyLine("this.offset = offset;");
+        limitMethod2.addBodyLine("this.limit = limit;");
+        limitMethod2.addBodyLine("return this;");
+        topLevelClass.addMethod(limitMethod2);
+
+        Method pageMethod = new Method("page");
+        pageMethod.setVisibility(JavaVisibility.PUBLIC);
+        pageMethod.setReturnType(topLevelClass.getType());
+        pageMethod.addParameter(new Parameter(integerWrapper, "page"));
+        pageMethod.addParameter(new Parameter(integerWrapper, "pageSize"));
+        pageMethod.addBodyLine("this.offset = " + (this.startPage == 0 ? "page" : "(page - " + this.startPage + ")") + " * pageSize;");
+        pageMethod.addBodyLine("this.limit = limit;");
+        pageMethod.addBodyLine("return this;");
+        topLevelClass.addMethod(pageMethod);
+
+        // !!! clear 方法增加 offset 和 limit 的清理
+        List<Method> methodList = topLevelClass.getMethods();
+        for (Method method : methodList) {
+            if (method.getName().equals("clear")) {
+                method.addBodyLine("limit = null;");
+                method.addBodyLine("offset = null;");
+            }
+        }
 
         return true;
     }

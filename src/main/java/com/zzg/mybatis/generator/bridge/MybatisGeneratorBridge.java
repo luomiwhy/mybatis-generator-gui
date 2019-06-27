@@ -216,10 +216,10 @@ public class MybatisGeneratorBridge {
         context.addPluginConfiguration(fluentPluginConfiguration);
 
         //            <!-- @Mapper注解 -->
-        PluginConfiguration mapperPluginConfiguration = new PluginConfiguration();
-        mapperPluginConfiguration.addProperty("type", "org.mybatis.generator.plugins.MapperAnnotationPlugin");
-        mapperPluginConfiguration.setConfigurationType("org.mybatis.generator.plugins.MapperAnnotationPlugin");
-        context.addPluginConfiguration(mapperPluginConfiguration);
+//        PluginConfiguration mapperPluginConfiguration = new PluginConfiguration();
+//        mapperPluginConfiguration.addProperty("type", "org.mybatis.generator.plugins.MapperAnnotationPlugin");
+//        mapperPluginConfiguration.setConfigurationType("org.mybatis.generator.plugins.MapperAnnotationPlugin");
+//        context.addPluginConfiguration(mapperPluginConfiguration);
 
         PluginConfiguration pluginConfiguration3 = new PluginConfiguration();
         pluginConfiguration3.addProperty("type", "com.softwareloop.mybatis.generator.plugins.LombokPlugin");
@@ -232,8 +232,8 @@ public class MybatisGeneratorBridge {
             if (DbType.MySQL.name().equals(dbType) || DbType.MySQL_8.name().equals(dbType)
 		            || DbType.PostgreSQL.name().equals(dbType)) {
                 PluginConfiguration pluginConfiguration = new PluginConfiguration();
-                pluginConfiguration.addProperty("type", "com.itfsw.mybatis.generator.plugins.LimitPlugin");
-                pluginConfiguration.setConfigurationType("com.itfsw.mybatis.generator.plugins.LimitPlugin");
+                pluginConfiguration.addProperty("type", "com.zzg.mybatis.generator.plugins.MySQLLimitPlugin");
+                pluginConfiguration.setConfigurationType("com.zzg.mybatis.generator.plugins.MySQLLimitPlugin");
                 pluginConfiguration.addProperty("startPage", "0");
                 context.addPluginConfiguration(pluginConfiguration);
             }
