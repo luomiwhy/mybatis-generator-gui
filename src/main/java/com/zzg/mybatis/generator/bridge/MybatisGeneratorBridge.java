@@ -1,8 +1,5 @@
 package com.zzg.mybatis.generator.bridge;
 
-import com.softwareloop.mybatis.generator.plugins.LombokPlugin;
-import com.jcraft.jsch.Session;
-import com.zzg.mybatis.generator.controller.PictureProcessStateController;
 import com.zzg.mybatis.generator.model.DatabaseConfig;
 import com.zzg.mybatis.generator.model.DbType;
 import com.zzg.mybatis.generator.model.GeneratorConfig;
@@ -287,13 +284,13 @@ public class MybatisGeneratorBridge {
 //            context.addPluginConfiguration(pluginConfiguration1);
 
 //            <!-- 逻辑删除插件 -->
-            PluginConfiguration logicalDeletePluginConfiguration = new PluginConfiguration();
-            logicalDeletePluginConfiguration.addProperty("type", "com.itfsw.mybatis.generator.plugins.LogicalDeletePlugin");
-            logicalDeletePluginConfiguration.setConfigurationType("com.itfsw.mybatis.generator.plugins.LogicalDeletePlugin");
-            logicalDeletePluginConfiguration.addProperty("logicalDeleteColumn", "yn");
-            logicalDeletePluginConfiguration.addProperty("logicalDeleteValue", "-1");
-            logicalDeletePluginConfiguration.addProperty("logicalUnDeleteValue", "1");
-            context.addPluginConfiguration(logicalDeletePluginConfiguration);
+//            PluginConfiguration logicalDeletePluginConfiguration = new PluginConfiguration();
+//            logicalDeletePluginConfiguration.addProperty("type", "com.itfsw.mybatis.generator.plugins.LogicalDeletePlugin");
+//            logicalDeletePluginConfiguration.setConfigurationType("com.itfsw.mybatis.generator.plugins.LogicalDeletePlugin");
+//            logicalDeletePluginConfiguration.addProperty("logicalDeleteColumn", "yn");
+//            logicalDeletePluginConfiguration.addProperty("logicalDeleteValue", "-1");
+//            logicalDeletePluginConfiguration.addProperty("logicalUnDeleteValue", "1");
+//            context.addPluginConfiguration(logicalDeletePluginConfiguration);
         }
 
         context.setTargetRuntime("MyBatis3");

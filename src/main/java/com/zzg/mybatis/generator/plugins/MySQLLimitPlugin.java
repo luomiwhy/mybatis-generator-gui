@@ -110,8 +110,8 @@ public class MySQLLimitPlugin extends PluginAdapter {
         pageMethod.setReturnType(topLevelClass.getType());
         pageMethod.addParameter(new Parameter(integerWrapper, "page"));
         pageMethod.addParameter(new Parameter(integerWrapper, "pageSize"));
-        pageMethod.addBodyLine("this.offset = " + (this.startPage == 0 ? "page" : "(page - " + this.startPage + ")") + " * pageSize;");
-        pageMethod.addBodyLine("this.limit = limit;");
+        pageMethod.addBodyLine("this.offset = (long) (" + (this.startPage == 0 ? "page" : "(page - " + this.startPage + ")") + " * pageSize);");
+        pageMethod.addBodyLine("this.limit = pageSize;");
         pageMethod.addBodyLine("return this;");
         topLevelClass.addMethod(pageMethod);
 
