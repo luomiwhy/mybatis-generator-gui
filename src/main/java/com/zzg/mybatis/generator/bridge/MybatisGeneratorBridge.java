@@ -212,11 +212,10 @@ public class MybatisGeneratorBridge {
         fluentPluginConfiguration.setConfigurationType("org.mybatis.generator.plugins.FluentBuilderMethodsPlugin");
         context.addPluginConfiguration(fluentPluginConfiguration);
 
-        //            <!-- @Mapper注解 -->
-//        PluginConfiguration mapperPluginConfiguration = new PluginConfiguration();
-//        mapperPluginConfiguration.addProperty("type", "org.mybatis.generator.plugins.MapperAnnotationPlugin");
-//        mapperPluginConfiguration.setConfigurationType("org.mybatis.generator.plugins.MapperAnnotationPlugin");
-//        context.addPluginConfiguration(mapperPluginConfiguration);
+        PluginConfiguration countFixPluginConfiguration = new PluginConfiguration();
+        countFixPluginConfiguration.addProperty("type", "com.zzg.mybatis.generator.plugins.FixCountPlugin");
+        countFixPluginConfiguration.setConfigurationType("com.zzg.mybatis.generator.plugins.FixCountPlugin");
+        context.addPluginConfiguration(countFixPluginConfiguration);
 
         PluginConfiguration pluginConfiguration3 = new PluginConfiguration();
         pluginConfiguration3.addProperty("type", "com.softwareloop.mybatis.generator.plugins.LombokPlugin");
