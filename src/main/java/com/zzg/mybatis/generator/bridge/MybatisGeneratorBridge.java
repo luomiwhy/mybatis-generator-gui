@@ -283,14 +283,19 @@ public class MybatisGeneratorBridge {
 //            pluginConfiguration1.addProperty("allowMultiQueries", "false"); // 不建议开启
 //            context.addPluginConfiguration(pluginConfiguration1);
 
+            PluginConfiguration removePluginConfiguration = new PluginConfiguration();
+            removePluginConfiguration.addProperty("type", "com.zzg.mybatis.generator.plugins.RemoveBeiGuoMethodPlugin");
+            removePluginConfiguration.setConfigurationType("com.zzg.mybatis.generator.plugins.RemoveBeiGuoMethodPlugin");
+            context.addPluginConfiguration(removePluginConfiguration);
+
 //            <!-- 逻辑删除插件 -->
-//            PluginConfiguration logicalDeletePluginConfiguration = new PluginConfiguration();
-//            logicalDeletePluginConfiguration.addProperty("type", "com.itfsw.mybatis.generator.plugins.LogicalDeletePlugin");
-//            logicalDeletePluginConfiguration.setConfigurationType("com.itfsw.mybatis.generator.plugins.LogicalDeletePlugin");
-//            logicalDeletePluginConfiguration.addProperty("logicalDeleteColumn", "yn");
-//            logicalDeletePluginConfiguration.addProperty("logicalDeleteValue", "-1");
-//            logicalDeletePluginConfiguration.addProperty("logicalUnDeleteValue", "1");
-//            context.addPluginConfiguration(logicalDeletePluginConfiguration);
+            PluginConfiguration logicalDeletePluginConfiguration = new PluginConfiguration();
+            logicalDeletePluginConfiguration.addProperty("type", "com.zzg.mybatis.generator.plugins.LogicalDeletePlugin");
+            logicalDeletePluginConfiguration.setConfigurationType("com.zzg.mybatis.generator.plugins.LogicalDeletePlugin");
+            logicalDeletePluginConfiguration.addProperty("logicalDeleteColumn", "yn");
+            logicalDeletePluginConfiguration.addProperty("logicalDeleteValue", "-1");
+            logicalDeletePluginConfiguration.addProperty("logicalUnDeleteValue", "1");
+            context.addPluginConfiguration(logicalDeletePluginConfiguration);
         }
 
         context.setTargetRuntime("MyBatis3");
